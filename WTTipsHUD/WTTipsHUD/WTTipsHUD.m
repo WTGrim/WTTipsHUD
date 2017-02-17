@@ -8,10 +8,18 @@
 
 #import "WTTipsHUD.h"
 
+#define ScreenWidth [UIScreen mainScreen].bounds.size.width
+#define ScreenHeight [UIScreen mainScreen].bounds.size.height
+
 @implementation WTTipsHUD
 
 
 @end
+
+
+
+
+
 
 
 @interface ActivityView ()
@@ -158,6 +166,192 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 - (void)dealloc{
     
     [[NSNotificationCenter defaultCenter]removeObserver:self];
+}
+
+
+@end
+
+
+
+@interface TipsHUDView ()
+
+#define kImageViewWidth 40.0
+
+@property(nonatomic, strong)UILabel *titleLabel;
+@property(nonatomic, strong)UIView *loadView;
+@property(nonatomic, strong)UIView *coverView;
+@property(nonatomic, assign)NSTimeInterval interval;
+@property(nonatomic, strong)UIImageView *imageView;
+@property(nonatomic, strong)UIActivityIndicatorView *indicatorView;
+@property(nonatomic, strong)ActivityView *activityView;
+
+@end
+@implementation TipsHUDView
+
+- (instancetype)initWithFrame:(CGRect)frame{
+    
+    if (self = [super initWithFrame:frame]) {
+        [self initView];
+    }
+    return self;
+}
+
+- (void)initView{
+    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.9];
+    self.priority = PriorityMiddle;
+    
+    self.loadView = [UIView new];
+    [self addSubview:self.loadView];
+    self.imageView = [UIImageView new];
+    [self addSubview:self.imageView];
+    self.titleLabel = [UILabel new];
+    self.titleLabel.textColor = [UIColor whiteColor];
+    self.titleLabel.backgroundColor = [UIColor clearColor];
+    [self addSubview:self.titleLabel];
+    
+    CGFloat w = kBackWidth;
+    self.loadView.frame = CGRectMake((CGRectGetWidth(self.frame) - w) * 0.5, 0, w, w);
+    self.imageView.frame = CGRectMake(0, 25, kImageViewWidth, kImageViewWidth);
+    CGPoint center = self.imageView.center;
+    center.x = self.loadView.center.x;
+    self.imageView.center = center;
+    
+    self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.loadView.frame), CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - CGRectGetMaxY(self.loadView.frame) - 20);
+}
+
+- (ActivityView *)activityView{
+    
+    if (!_activityView) {
+        _activityView = [[ActivityView alloc]initWithFrame:CGRectMake(0, 0, kBackWidth, kBackWidth)];
+        [self.imageView removeFromSuperview];
+        self.loadView.hidden = NO;
+        if (self.HUDType == WTTipsHUDTypeLoadWithTitle) {
+            self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.loadView.frame) + 10, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - CGRectGetMaxY(self.loadView.frame) - 30);
+            self.titleLabel.numberOfLines = 1;
+            self.bounds = CGRectMake(0, 0, 115, 125);
+        }else if(self.HUDType == WTTipsHUDTypeLoadWithOutTitle){
+            self.titleLabel.hidden = YES;
+            self.bounds = CGRectMake(0, 0, 90, 90);
+        }
+        
+        [self.loadView addSubview:_activityView];
+    }
+    return _activityView;
+}
+
+- (UIActivityIndicatorView *)indicatorView{
+    
+    if (!_indicatorView) {
+        _indicatorView = [[UIActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, kImageViewWidth, kImageViewWidth)];
+        _indicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        [self.imageView addSubview:_indicatorView];
+    }
+    return _indicatorView;
+}
+
+#pragma mark - 显示
+- (void)showMessage:(NSString *)message duration:(CGFloat)duration{
+    
+    _coverView = [UIImageView new];
+    UIWindow *currentWindow = nil;
+    NSEnumerator *windowsEnumertor = [[[UIApplication sharedApplication] windows] reverseObjectEnumerator];
+    
+    for (UIWindow *window in windowsEnumertor) {
+        if (window.windowLevel == UIWindowLevelNormal) {
+            currentWindow = window;
+            break;
+        }
+    }
+    
+    for (UIView *view in currentWindow.subviews) {
+        if ([view isKindOfClass:[self class]]) {
+            TipsHUDView *HUD = (TipsHUDView *)view;
+            if (self.priority >= HUD.priority) {
+                [HUD hide];
+            }
+        }
+    }
+    
+    _coverView.center = currentWindow.center;
+    _coverView.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
+    if (!_backViewCanTouch) {
+        [currentWindow addSubview:_coverView];
+    }
+    
+    [currentWindow addSubview:self];
+    
+    self.loadView.hidden = YES;
+    self.titleLabel.text = message;
+    UIFont *font;
+    
+    if (self.HUDType == WTTipsHUDTypeText) {
+        CGRect imageViewRect = self.imageView.frame;
+        imageViewRect.size.height = 0;
+        self.imageView.frame = imageViewRect;
+        self.imageView.hidden = YES;
+        
+        CGPoint titleCenter = self.titleLabel.center;
+        titleCenter = self.center;
+        self.titleLabel.center = titleCenter;
+        font = [UIFont systemFontOfSize:15];
+        CGSize size = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size;
+        CGFloat HUDWidth = size.width;
+        if (HUDWidth <= ScreenWidth - 100 - kImageViewWidth) {
+            
+            HUDWidth += 41;
+        }else{
+            HUDWidth = ScreenWidth - 100;
+        }
+        
+        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
+        self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth - 40, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size.height + 41);
+        
+    }else if (self.HUDType == WTTipsHUDTypeLoadWithTitle || self.HUDType == WTTipsHUDTypeLoadWithOutTitle){
+        
+        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
+        [self.activityView beginAnimating];
+        self.titleLabel.text = message;
+        
+    }else if (self.HUDType == WTTipsHUDTypeLoadWithCustomView){
+        
+        if (self.customView) {
+            self.loadView.hidden = NO;
+            self.imageView.hidden = YES;
+            self.customView.frame = CGRectMake(0, 0, kBackWidth, kBackWidth);
+            [self.loadView addSubview:self.customView];
+            
+            if (message && message.length > 0) {
+                CGRect titleRect = self.titleLabel.frame;
+                titleRect.origin.y = 30;
+                self.titleLabel.frame = titleRect;
+                self.titleLabel.numberOfLines = 1;
+                self.bounds = CGRectMake(0, 0, 115, 125);
+            }else{
+                self.titleLabel.hidden = YES;
+                self.bounds = CGRectMake(0, 0, kBackWidth, kBackWidth);
+            }
+        }
+        
+    }else{
+        
+        if (self.HUDType == WTTipsHUDTypeText) {
+            
+            //继续
+        }
+        
+    }
+}
+
+#pragma mark - 隐藏
+- (void)hide{
+    
+    if (_indicatorView) {
+        [_indicatorView stopAnimating];
+    }
+    self.hidden = YES;
+    _coverView.hidden = YES;
+    [_coverView removeFromSuperview];
+    [self removeFromSuperview];
 }
 
 @end

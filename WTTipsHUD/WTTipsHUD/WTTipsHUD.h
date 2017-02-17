@@ -10,11 +10,6 @@
 
 
 #import <UIKit/UIKit.h>
-typedef enum : NSUInteger {
-    <#MyEnumValueA#>,
-    <#MyEnumValueB#>,
-    <#MyEnumValueC#>,
-} <#MyEnum#>;
 
 
 @interface WTTipsHUD : NSObject
@@ -23,7 +18,7 @@ typedef enum : NSUInteger {
 
 @end
 
-
+//------------------------------------------
 @interface ActivityView : UIView
 
 - (void)beginAnimating;
@@ -31,8 +26,34 @@ typedef enum : NSUInteger {
 
 @end
 
-@interface TipHUDView : UIView
 
 
+//------------------------------------------
+@interface TipsHUDView : UIView
+
+//样式
+typedef enum : NSUInteger {
+    WTTipsHUDTypeSuccess,
+    WTTipsHUDTypeFail,
+    WTTipsHUDTypeText,
+    WTTipsHUDTypeCustomView,
+    WTTipsHUDTypeLoadWithOutTitle,
+    WTTipsHUDTypeLoadWithTitle,
+    WTTipsHUDTypeLoadWithCustomView
+}  WTTipsHUDType;
+//优先级
+typedef enum : NSUInteger {
+    PriorityHigh = 1000,
+    PriorityMiddle = 750,
+    PriorityLow = 500
+} WTTipsHUDPPriority;
+
+@property(nonatomic, strong)UIView *customView;
+@property(nonatomic, assign)BOOL backViewCanTouch;
+@property(nonatomic, assign)WTTipsHUDType HUDType;
+@property(nonatomic, assign)WTTipsHUDPPriority priority;
+
+- (void)showMessage:(NSString *)message duration:(CGFloat)duration;
+- (void)hide;
 
 @end
