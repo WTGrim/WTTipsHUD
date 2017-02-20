@@ -8,6 +8,8 @@
 
 #import "ViewController.h"
 
+#import "WTTipsHUD.h"
+
 @interface ViewController ()
 
 @end
@@ -17,8 +19,20 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 100, 100, 100);
+    [button setTitle:@"点点" forState:UIControlStateNormal];
+    [button addTarget: self action:@selector(show) forControlEvents:UIControlEventTouchUpInside];
+    [button setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
+    [self.view addSubview:button];
 }
 
+
+- (void)show{
+    
+    [WTTipsHUD showCircleLoaingMessage:@"哈哈哈哈哈哈哈"];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

@@ -10,16 +10,111 @@
 
 #define ScreenWidth [UIScreen mainScreen].bounds.size.width
 #define ScreenHeight [UIScreen mainScreen].bounds.size.height
+#define kDefaultDuration 1.5
+#define kTimeout 120
 
 @implementation WTTipsHUD
 
++ (void)showErrorHUD:(NSString *)message{
+    
+    [self showErrorHUD:message duration:kDefaultDuration];
+}
+
++ (void)showErrorHUD:(NSString *)message duration:(CGFloat)duration{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    HUD.HUDType = WTTipsHUDTypeFail;
+    [HUD showMessage:message duration:duration];
+}
+
++ (void)showSuccessHUD:(NSString *)message{
+    
+    [self showSuccessHUD:message duration:kDefaultDuration];
+}
+
++ (void)showSuccessHUD:(NSString *)message duration:(CGFloat)duration{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    HUD.HUDType = WTTipsHUDTypeSuccess;
+    [HUD showMessage:message duration:duration];
+}
+
++ (void)showMessage:(NSString *)message{
+    
+    [self showMessage:message duration:kDefaultDuration];
+}
+
++ (void)showMessage:(NSString *)message duration:(CGFloat)duration{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    HUD.HUDType = WTTipsHUDTypeText;
+    [HUD showMessage:message duration:duration];
+}
+
+
++ (void)showLoadingMessage:(NSString *)message{
+    
+    [self showLoadingMessage:message duration:kDefaultDuration];
+}
+
++ (void)showLoadingMessage:(NSString *)message duration:(CGFloat)duration{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    HUD.HUDType = WTTipsHUDTypeLoadWithTitle;
+    [HUD showMessage:message duration:duration];
+}
+
++ (void)showCircleLoaing{
+    
+    [self showCircleLoaingMessage:nil];
+}
+
++ (void)showCircleLoaingMessage:(NSString *)message{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    if (!message || message.length == 0) {
+        HUD.HUDType = WTTipsHUDTypeLoadWithTitle;
+    }else{
+        HUD.HUDType = WTTipsHUDTypeLoadWithOutTitle;
+    }
+    [HUD showMessage:message duration:kTimeout];
+}
+
+
++ (void)showMessage:(NSString *)message withCustomView:(UIView *)customView{
+    
+    TipsHUDView *HUD = [[TipsHUDView alloc]init];
+    HUD.HUDType = WTTipsHUDTypeCustomView;
+    HUD.priority = PriorityHigh;
+    HUD.customView = customView;
+    [HUD showMessage:message duration:kTimeout];
+}
+
+
++ (void)hide{
+    
+    UIWindow *currentWindow = nil;
+    NSEnumerator *enumerator = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
+    
+    for (UIWindow *window in enumerator) {
+        if (window.windowLevel == UIWindowLevelNormal) {
+            currentWindow = window;
+            break;
+        }
+    }
+    
+    [currentWindow.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+       
+        if ([obj isKindOfClass:[TipsHUDView class]]) {
+            TipsHUDView *HUD = (TipsHUDView *)obj;
+            if (HUD.priority != PriorityHigh) {
+                [HUD hide];
+            }
+        }
+    }];
+}
 
 @end
-
-
-
-
-
 
 
 @interface ActivityView ()
@@ -180,7 +275,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 @property(nonatomic, strong)UILabel *titleLabel;
 @property(nonatomic, strong)UIView *loadView;
 @property(nonatomic, strong)UIView *coverView;
-@property(nonatomic, assign)NSTimeInterval interval;
+@property(nonatomic, assign)CGFloat duration;
 @property(nonatomic, strong)UIImageView *imageView;
 @property(nonatomic, strong)UIActivityIndicatorView *indicatorView;
 @property(nonatomic, strong)ActivityView *activityView;
@@ -334,12 +429,49 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
         
     }else{
         
-        if (self.HUDType == WTTipsHUDTypeText) {
+        if (self.HUDType == WTTipsHUDTypeSuccess) {
             
             //继续
+            self.imageView.image = [UIImage imageNamed:@"success.png"];
+        }else if (self.HUDType == WTTipsHUDTypeFail){
+            self.imageView.image = [UIImage imageNamed:@"fail.png"];
+        }else if (self.HUDType == WTTipsHUDTypeWait){
+            self.imageView.image = nil;
+            [self.indicatorView startAnimating];
         }
         
+        CGSize textSize = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size;
+        CGFloat HUDWidth = textSize.width;
+        
+        if (HUDWidth + kImageViewWidth <= 115) {
+            HUDWidth = 115;
+        }else if (HUDWidth + kImageViewWidth >= ScreenWidth - 100){
+            HUDWidth = ScreenWidth - 100;
+        }else{
+            HUDWidth += 41;
+        }
+        
+        self.titleLabel.font = [UIFont systemFontOfSize:16];
+        font = [UIFont systemFontOfSize:16];
+        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
+        self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height + 101);
     }
+    self.layer.masksToBounds = YES;
+    self.layer.cornerRadius = 10;
+    self.duration = duration;
+    [self hideWithDuration];
+}
+
+- (void)hideWithDuration{
+    
+    if (self.duration == 0) {
+        self.duration = kDefaultDuration;
+    }
+    __weak typeof(self)weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        [weakSelf hide];
+    });
 }
 
 #pragma mark - 隐藏
@@ -353,5 +485,6 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
     [_coverView removeFromSuperview];
     [self removeFromSuperview];
 }
+
 
 @end

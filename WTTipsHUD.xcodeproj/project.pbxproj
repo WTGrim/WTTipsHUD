@@ -17,6 +17,8 @@
 		5D9B88711E56955600F57F84 /* WTTipsHUDUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D9B88701E56955600F57F84 /* WTTipsHUDUITests.m */; };
 		5D9B88811E56958900F57F84 /* WTTipsHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D9B88801E56958900F57F84 /* WTTipsHUD.m */; };
 		5D9B88831E56A3C700F57F84 /* maskImage.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D9B88821E56A3C700F57F84 /* maskImage.png */; };
+		5DB22A1E1E5A780800F7A8C0 /* success.png in Resources */ = {isa = PBXBuildFile; fileRef = 5DB22A1C1E5A780800F7A8C0 /* success.png */; };
+		5DB22A1F1E5A780800F7A8C0 /* fail.png in Resources */ = {isa = PBXBuildFile; fileRef = 5DB22A1D1E5A780800F7A8C0 /* fail.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +58,8 @@
 		5D9B887F1E56958900F57F84 /* WTTipsHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WTTipsHUD.h; sourceTree = "<group>"; };
 		5D9B88801E56958900F57F84 /* WTTipsHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WTTipsHUD.m; sourceTree = "<group>"; };
 		5D9B88821E56A3C700F57F84 /* maskImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = maskImage.png; sourceTree = "<group>"; };
+		5DB22A1C1E5A780800F7A8C0 /* success.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = success.png; sourceTree = "<group>"; };
+		5DB22A1D1E5A780800F7A8C0 /* fail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = fail.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +153,8 @@
 		5D9B887E1E56957100F57F84 /* WTTipsHUD */ = {
 			isa = PBXGroup;
 			children = (
+				5DB22A1C1E5A780800F7A8C0 /* success.png */,
+				5DB22A1D1E5A780800F7A8C0 /* fail.png */,
 				5D9B88821E56A3C700F57F84 /* maskImage.png */,
 				5D9B887F1E56958900F57F84 /* WTTipsHUD.h */,
 				5D9B88801E56958900F57F84 /* WTTipsHUD.m */,
@@ -263,8 +269,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D9B885B1E56955600F57F84 /* LaunchScreen.storyboard in Resources */,
+				5DB22A1E1E5A780800F7A8C0 /* success.png in Resources */,
 				5D9B88581E56955600F57F84 /* Assets.xcassets in Resources */,
 				5D9B88561E56955600F57F84 /* Main.storyboard in Resources */,
+				5DB22A1F1E5A780800F7A8C0 /* fail.png in Resources */,
 				5D9B88831E56A3C700F57F84 /* maskImage.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -523,6 +531,7 @@
 				5D9B88771E56955600F57F84 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5D9B88781E56955600F57F84 /* Build configuration list for PBXNativeTarget "WTTipsHUDTests" */ = {
 			isa = XCConfigurationList;
@@ -531,6 +540,7 @@
 				5D9B887A1E56955600F57F84 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5D9B887B1E56955600F57F84 /* Build configuration list for PBXNativeTarget "WTTipsHUDUITests" */ = {
 			isa = XCConfigurationList;
@@ -539,6 +549,7 @@
 				5D9B887D1E56955600F57F84 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
