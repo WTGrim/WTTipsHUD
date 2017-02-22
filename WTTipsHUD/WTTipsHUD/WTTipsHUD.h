@@ -67,7 +67,7 @@ typedef enum : NSUInteger {
 } WTTipsHUDPPriority;
 
 @property(nonatomic, strong)UIView *customView;
-@property(nonatomic, assign)BOOL backViewCanTouch;
+@property(nonatomic, assign)BOOL backViewCanTouch;   //在显示HUD的时候，window其他部分是否可以被点击
 @property(nonatomic, assign)WTTipsHUDType HUDType;
 @property(nonatomic, assign)WTTipsHUDPPriority priority;
 

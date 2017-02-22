@@ -48,6 +48,7 @@
     
     TipsHUDView *HUD = [[TipsHUDView alloc]init];
     HUD.HUDType = WTTipsHUDTypeText;
+    HUD.backViewCanTouch = NO;
     [HUD showMessage:message duration:duration];
 }
 
@@ -60,7 +61,8 @@
 + (void)showLoadingMessage:(NSString *)message duration:(CGFloat)duration{
     
     TipsHUDView *HUD = [[TipsHUDView alloc]init];
-    HUD.HUDType = WTTipsHUDTypeLoadWithTitle;
+    HUD.HUDType = WTTipsHUDTypeWait;
+    HUD.backViewCanTouch = NO;
     [HUD showMessage:message duration:duration];
 }
 
@@ -172,7 +174,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 - (CAShapeLayer *)animateLayer{
     
     if (!_animateLayer) {
-        CGPoint center = CGPointMake(self.radius + self.lineWidth * 0.5 + 5, self.radius + self.lineWidth * 0.5);
+        CGPoint center = CGPointMake(self.radius + self.lineWidth * 0.5 + 5, self.radius + self.lineWidth * 0.5 + 5);
         CGRect rect = CGRectMake(0, 0, center.x * 2, center.y * 2);
         
         UIBezierPath *path = [UIBezierPath bezierPathWithArcCenter:center radius:self.radius startAngle:(CGFloat)(M_PI * 3/2) endAngle:(CGFloat)(M_PI/2 + 5 * M_PI) clockwise:YES];
@@ -279,19 +281,22 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 @property(nonatomic, strong)UIImageView *imageView;
 @property(nonatomic, strong)UIActivityIndicatorView *indicatorView;
 @property(nonatomic, strong)ActivityView *activityView;
+@property(nonatomic, strong)NSString *message;
 
 @end
 @implementation TipsHUDView
 
-- (instancetype)initWithFrame:(CGRect)frame{
+- (instancetype)init{
     
-    if (self = [super initWithFrame:frame]) {
+    if (self = [super init]) {
         [self initView];
     }
     return self;
 }
 
 - (void)initView{
+    
+    self.bounds = CGRectMake(0, 0, kBackWidth + 25, kBackWidth + 25);
     self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.9];
     self.priority = PriorityMiddle;
     
@@ -302,16 +307,35 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
     self.titleLabel = [UILabel new];
     self.titleLabel.textColor = [UIColor whiteColor];
     self.titleLabel.backgroundColor = [UIColor clearColor];
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.titleLabel];
     
     CGFloat w = kBackWidth;
-    self.loadView.frame = CGRectMake((CGRectGetWidth(self.frame) - w) * 0.5, 0, w, w);
-    self.imageView.frame = CGRectMake(0, 25, kImageViewWidth, kImageViewWidth);
-    CGPoint center = self.imageView.center;
-    center.x = self.loadView.center.x;
-    self.imageView.center = center;
+    self.loadView.frame = CGRectMake(0, 0, w, w);
+    CGPoint loadViewCenter = self.loadView.center;
+    loadViewCenter.x = self.center.x;
+    self.loadView.center = loadViewCenter;
     
-    self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.loadView.frame), CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - CGRectGetMaxY(self.loadView.frame) - 20);
+    self.titleLabel.frame = CGRectMake(20, 10, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - 20);
+}
+
+
+- (void)layoutSubviews{
+    
+    [super layoutSubviews];
+    self.imageView.frame = CGRectMake((CGRectGetWidth(self.bounds) - kImageViewWidth) * 0.5, 25, kImageViewWidth, kImageViewWidth);
+    
+    if (self.HUDType == WTTipsHUDTypeText) {
+        
+        self.titleLabel.numberOfLines = 0;
+        self.titleLabel.frame = CGRectMake(20, 10, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - 20);        
+        
+    }else{
+        
+        self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.imageView.frame) + 15, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - (CGRectGetMaxY(self.imageView.frame) + 15) - 20);
+        
+    }
+
 }
 
 - (ActivityView *)activityView{
@@ -320,8 +344,9 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
         _activityView = [[ActivityView alloc]initWithFrame:CGRectMake(0, 0, kBackWidth, kBackWidth)];
         [self.imageView removeFromSuperview];
         self.loadView.hidden = NO;
+        
         if (self.HUDType == WTTipsHUDTypeLoadWithTitle) {
-            self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.loadView.frame) + 10, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - CGRectGetMaxY(self.loadView.frame) - 30);
+            self.titleLabel.frame = CGRectMake(20, CGRectGetMaxY(self.imageView.frame) + 30, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - (CGRectGetMaxY(self.loadView.frame) + 30) - 20);
             self.titleLabel.numberOfLines = 1;
             self.bounds = CGRectMake(0, 0, 115, 125);
         }else if(self.HUDType == WTTipsHUDTypeLoadWithOutTitle){
@@ -340,6 +365,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
         _indicatorView = [[UIActivityIndicatorView alloc]initWithFrame:CGRectMake(0, 0, kImageViewWidth, kImageViewWidth)];
         _indicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         [self.imageView addSubview:_indicatorView];
+
     }
     return _indicatorView;
 }
@@ -347,7 +373,8 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 #pragma mark - 显示
 - (void)showMessage:(NSString *)message duration:(CGFloat)duration{
     
-    _coverView = [UIImageView new];
+    _coverView = [UIView new];
+    _message = message;
     UIWindow *currentWindow = nil;
     NSEnumerator *windowsEnumertor = [[[UIApplication sharedApplication] windows] reverseObjectEnumerator];
     
@@ -368,6 +395,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
     }
     
     _coverView.center = currentWindow.center;
+    _coverView.userInteractionEnabled = YES;
     _coverView.bounds = CGRectMake(0, 0, ScreenWidth, ScreenHeight);
     if (!_backViewCanTouch) {
         [currentWindow addSubview:_coverView];
@@ -377,18 +405,16 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
     
     self.loadView.hidden = YES;
     self.titleLabel.text = message;
-    UIFont *font;
     
+    UIFont *font = [UIFont boldSystemFontOfSize:15];;
+    self.titleLabel.font = font;
     if (self.HUDType == WTTipsHUDTypeText) {
+        
         CGRect imageViewRect = self.imageView.frame;
         imageViewRect.size.height = 0;
         self.imageView.frame = imageViewRect;
         self.imageView.hidden = YES;
         
-        CGPoint titleCenter = self.titleLabel.center;
-        titleCenter = self.center;
-        self.titleLabel.center = titleCenter;
-        font = [UIFont systemFontOfSize:15];
         CGSize size = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size;
         CGFloat HUDWidth = size.width;
         if (HUDWidth <= ScreenWidth - 100 - kImageViewWidth) {
@@ -417,7 +443,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
             
             if (message && message.length > 0) {
                 CGRect titleRect = self.titleLabel.frame;
-                titleRect.origin.y = 30;
+                titleRect.origin.y = CGRectGetMaxY(self.imageView.frame) + 30;
                 self.titleLabel.frame = titleRect;
                 self.titleLabel.numberOfLines = 1;
                 self.bounds = CGRectMake(0, 0, 115, 125);
@@ -440,7 +466,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
             [self.indicatorView startAnimating];
         }
         
-        CGSize textSize = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size;
+        CGSize textSize = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size;
         CGFloat HUDWidth = textSize.width;
         
         if (HUDWidth + kImageViewWidth <= 115) {
@@ -451,10 +477,8 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
             HUDWidth += 41;
         }
         
-        self.titleLabel.font = [UIFont systemFontOfSize:16];
-        font = [UIFont systemFontOfSize:16];
         self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
-        self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16]} context:nil].size.height + 101);
+        self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size.height + 101);
     }
     self.layer.masksToBounds = YES;
     self.layer.cornerRadius = 10;
