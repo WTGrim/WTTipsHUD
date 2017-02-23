@@ -75,9 +75,9 @@
     
     TipsHUDView *HUD = [[TipsHUDView alloc]init];
     if (!message || message.length == 0) {
-        HUD.HUDType = WTTipsHUDTypeLoadWithTitle;
-    }else{
         HUD.HUDType = WTTipsHUDTypeLoadWithOutTitle;
+    }else{
+        HUD.HUDType = WTTipsHUDTypeLoadWithTitle;
     }
     [HUD showMessage:message duration:kTimeout];
 }
@@ -186,6 +186,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
         _animateLayer.strokeColor = self.strokeColor.CGColor;
         _animateLayer.lineCap = kCALineCapRound;
         _animateLayer.lineJoin = kCALineJoinBevel;
+        _animateLayer.lineWidth = self.lineWidth;
         _animateLayer.path = path.CGPath;
         
         
@@ -262,7 +263,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 
 - (void)dealloc{
     
-    [[NSNotificationCenter defaultCenter]removeObserver:self];
+    [[NSNotificationCenter defaultCenter]removeObserver:self name:kAppDidBecomActive object:nil];
 }
 
 
@@ -297,7 +298,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 - (void)initView{
     
     self.bounds = CGRectMake(0, 0, kBackWidth + 25, kBackWidth + 25);
-    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.9];
+    self.backgroundColor = [UIColor colorWithWhite:0 alpha:1];
     self.priority = PriorityMiddle;
     
     self.loadView = [UIView new];
@@ -310,11 +311,8 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
     self.titleLabel.textAlignment = NSTextAlignmentCenter;
     [self addSubview:self.titleLabel];
     
-    CGFloat w = kBackWidth;
-    self.loadView.frame = CGRectMake(0, 0, w, w);
-    CGPoint loadViewCenter = self.loadView.center;
-    loadViewCenter.x = self.center.x;
-    self.loadView.center = loadViewCenter;
+//    CGFloat w = kBackWidth;
+//    self.loadView.frame = CGRectMake(0, 0, w, w);
     
     self.titleLabel.frame = CGRectMake(20, 10, CGRectGetWidth(self.frame) - 40, CGRectGetHeight(self.frame) - 20);
 }
@@ -323,7 +321,9 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 - (void)layoutSubviews{
     
     [super layoutSubviews];
+    
     self.imageView.frame = CGRectMake((CGRectGetWidth(self.bounds) - kImageViewWidth) * 0.5, 25, kImageViewWidth, kImageViewWidth);
+    self.loadView.frame = CGRectMake((CGRectGetWidth(self.frame) - kBackWidth) * 0.5, 0, kBackWidth, kBackWidth);
     
     if (self.HUDType == WTTipsHUDTypeText) {
         
@@ -373,6 +373,7 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
 #pragma mark - 显示
 - (void)showMessage:(NSString *)message duration:(CGFloat)duration{
     
+    self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
     _coverView = [UIView new];
     _message = message;
     UIWindow *currentWindow = nil;
@@ -424,14 +425,11 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
             HUDWidth = ScreenWidth - 100;
         }
         
-        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
         self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth - 40, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size.height + 41);
         
-    }else if (self.HUDType == WTTipsHUDTypeLoadWithTitle || self.HUDType == WTTipsHUDTypeLoadWithOutTitle){
+    }else if (self.HUDType == WTTipsHUDTypeLoadWithOutTitle){
         
-        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
         [self.activityView beginAnimating];
-        self.titleLabel.text = message;
         
     }else if (self.HUDType == WTTipsHUDTypeLoadWithCustomView){
         
@@ -464,6 +462,9 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
         }else if (self.HUDType == WTTipsHUDTypeWait){
             self.imageView.image = nil;
             [self.indicatorView startAnimating];
+        }else if (self.HUDType == WTTipsHUDTypeLoadWithTitle){
+            self.titleLabel.text = message;
+            [self.activityView beginAnimating];
         }
         
         CGSize textSize = [message boundingRectWithSize:CGSizeMake(MAXFLOAT, 21) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size;
@@ -477,7 +478,6 @@ static NSString *const kAppDidBecomActive = @"appDidBecomActive";
             HUDWidth += 41;
         }
         
-        self.center = CGPointMake(ScreenWidth * 0.5, ScreenHeight * 0.5);
         self.bounds = CGRectMake(0, 0, HUDWidth, [message boundingRectWithSize:CGSizeMake(HUDWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:font} context:nil].size.height + 101);
     }
     self.layer.masksToBounds = YES;

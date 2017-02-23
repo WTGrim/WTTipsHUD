@@ -38,11 +38,12 @@
 
 - (void)show{
     
-//    [WTTipsHUD showLoadingMessage:@"加载中..." duration:4];
+    [WTTipsHUD showLoadingMessage:@"加载中..." duration:4];
 //    [WTTipsHUD showMessage:@"神兽保佑代码无bug  神兽啊神兽你去了哪里我怎么找不到你了" duration:4];
 //    [WTTipsHUD showErrorHUD:@"神兽你在哪儿" duration:4];
 //    [WTTipsHUD showSuccessHUD:@"神兽" duration:4];
-    [WTTipsHUD showCircleLoaingMessage:@"神兽保佑"];
+//    [WTTipsHUD showCircleLoaingMessage:@"神兽保佑啊神兽"];
+//    [WTTipsHUD showCircleLoaingMessage:@""];
 }
 
 - (void)test{
